@@ -1,12 +1,11 @@
 package model;
 
-// clasa de baza pentru entitati, cu un camp id comun tuturor entitatilor
-
+// clasa de baza pentru entitati
 public abstract class BaseEntity {
 
     private int id;
 
-    public BaseEntity() {}
+    public BaseEntity() { }
 
     public BaseEntity(int id) {
         this.id = id;

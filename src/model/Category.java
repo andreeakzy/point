@@ -1,7 +1,9 @@
 package model;
 
-// clasa care descrie categoria generala a unei activitati
+// categorie pt learning activities
+
 public class Category extends BaseEntity {
+
     private String categoryName;
     private String categoryDescription;
 
@@ -14,32 +16,24 @@ public class Category extends BaseEntity {
         this.categoryDescription = categoryDescription;
     }
 
-    // getter pentru numele categoriei
     public String getCategoryName() {
         return categoryName;
     }
 
-    // setter pentru numele categoriei
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
     }
 
-    // getter pentru descrierea categoriei
     public String getCategoryDescription() {
         return categoryDescription;
     }
 
-    // setter pentru descrierea categoriei
     public void setCategoryDescription(String categoryDescription) {
         this.categoryDescription = categoryDescription;
     }
 
     @Override
     public String toString() {
-        return "Category{" +
-                "id=" + getId() +
-                ", categoryName='" + categoryName + '\'' +
-                ", categoryDescription='" + categoryDescription + '\'' +
-                '}';
+        return String.format("Category: %s (ID: %d) - %s", categoryName, getId(), categoryDescription);
     }
 }

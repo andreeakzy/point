@@ -1,11 +1,19 @@
 package service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 import model.AcademicLearningPoint;
+import model.AssessmentType;
 import model.CareerLearningPoint;
 import model.Category;
 import model.DifficultyLevel;
 import model.EnergyLevel;
 import model.EnergyState;
+import model.IndustryLevel;
 import model.Learner;
 import model.LearningPoint;
 import model.Milestone;
@@ -13,47 +21,31 @@ import model.NextPoint;
 import model.PersonalLearningPoint;
 import model.PriorityLevel;
 import model.ProgressRecord;
+import model.ReflectionFrequency;
 import model.SessionStatus;
 import model.StudySession;
+import model.WellnessCategory;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+public class Point {
 
-// clasa service care contine logica principala a aplicatiei
-public class PointService {
-
-    // colectie pentru utilizatori
     private final List<Learner> learners;
 
-    // colectie pentru toate activitatile de invatare
     private final List<LearningPoint> learningPoints;
 
-    // colectie sortata automat pentru activitati
     private final TreeSet<LearningPoint> sortedLearningPoints;
 
-    // map pentru milestone-uri, unde cheia este id-ul
     private final Map<Integer, Milestone> milestoneMap;
 
-    // colectie pentru sesiuni de studiu
     private final List<StudySession> studySessions;
 
-    // colectie pentru istoricul progresului
     private final List<ProgressRecord> progressHistory;
 
-    // colectie pentru recomandarile generate
     private final List<NextPoint> nextPointHistory;
 
-    // map pentru categorii implicite
     private final Map<String, Category> categoryMap;
 
-    // energia curenta a utilizatorului
     private EnergyState currentEnergyState;
 
-    // contoare simple pentru generarea id-urilor
     private int learnerIdCounter = 1;
     private int learningPointIdCounter = 1;
     private int milestoneIdCounter = 1;
@@ -62,7 +54,7 @@ public class PointService {
     private int studySessionIdCounter = 1;
     private int nextPointIdCounter = 1;
 
-    public PointService() {
+    public Point() {
         learners = new ArrayList<>();
         learningPoints = new ArrayList<>();
         sortedLearningPoints = new TreeSet<>();
@@ -75,24 +67,17 @@ public class PointService {
         initializeDefaultCategories();
     }
 
-    // initializam cele 3 categorii de baza ale aplicatiei
     private void initializeDefaultCategories() {
         Category academicCategory = new Category(
-                1,
-                "academica",
-                "activitati pentru facultate, examene si proiecte academice"
+                1, "academic", "learning activities pentru facultate, examene si proiecte academice"
         );
 
         Category careerCategory = new Category(
-                2,
-                "profesionala",
-                "activitati pentru cariera, skill-uri si dezvoltare profesionala"
+                2, "career", "learning activities pentru cariera, skill-uri si profesional development"
         );
 
         Category personalCategory = new Category(
-                3,
-                "personala",
-                "activitati pentru sine, lectura si dezvoltare personala"
+                3, "personal", "learning activities pentru sine, lectura si personal growth"
         );
 
         categoryMap.put(academicCategory.getCategoryName().toLowerCase(), academicCategory);
@@ -100,12 +85,10 @@ public class PointService {
         categoryMap.put(personalCategory.getCategoryName().toLowerCase(), personalCategory);
     }
 
-    // returneaza toate categoriile existente
     public List<Category> getAllCategories() {
         return new ArrayList<>(categoryMap.values());
     }
 
-    // cauta categoria dupa nume
     public Category getCategoryByName(String categoryName) {
         if (categoryName == null) {
             return null;
@@ -114,31 +97,30 @@ public class PointService {
         return categoryMap.get(categoryName.toLowerCase());
     }
 
-    // adauga un learner nou
-    public Learner addLearner(String fullName, String emailAddress, String growthDirection) {
+    public Learner addLearner(String fullName, String emailAddress) {
         Learner learner = new Learner(
                 learnerIdCounter++,
                 fullName,
-                emailAddress,
-                growthDirection
+                emailAddress
         );
 
         learners.add(learner);
         return learner;
     }
 
-    // returneaza toti utilizatorii
     public List<Learner> getAllLearners() {
         return learners;
     }
 
-    // adauga un learning point academic
     public LearningPoint addAcademicLearningPoint(String pointTitle, String pointDescription,
-                                                  DifficultyLevel difficultyLevel,
-                                                  PriorityLevel priorityLevel,
-                                                  EnergyLevel requiredEnergyLevel,
-                                                  String subjectName) {
-        Category academicCategory = getCategoryByName("academica");
+            DifficultyLevel difficultyLevel,
+            PriorityLevel priorityLevel,
+            EnergyLevel requiredEnergyLevel,
+            String subjectName,
+            double creditPoints,
+            AssessmentType assessmentType,
+            String targetGrade) {
+        Category academicCategory = getCategoryByName("academic");
 
         AcademicLearningPoint academicPoint = new AcademicLearningPoint(
                 learningPointIdCounter++,
@@ -148,7 +130,10 @@ public class PointService {
                 priorityLevel,
                 requiredEnergyLevel,
                 academicCategory,
-                subjectName
+                subjectName,
+                creditPoints,
+                assessmentType,
+                targetGrade
         );
 
         learningPoints.add(academicPoint);
@@ -157,13 +142,16 @@ public class PointService {
         return academicPoint;
     }
 
-    // adauga un learning point profesional
     public LearningPoint addCareerLearningPoint(String pointTitle, String pointDescription,
-                                                DifficultyLevel difficultyLevel,
-                                                PriorityLevel priorityLevel,
-                                                EnergyLevel requiredEnergyLevel,
-                                                String skillTrack) {
-        Category careerCategory = getCategoryByName("profesionala");
+            DifficultyLevel difficultyLevel,
+            PriorityLevel priorityLevel,
+            EnergyLevel requiredEnergyLevel,
+            String skillTrack,
+            String requiredCertifications,
+            IndustryLevel industryLevel,
+            boolean mentorRequired,
+            double salaryImpactEstimate) {
+        Category careerCategory = getCategoryByName("career");
 
         CareerLearningPoint careerPoint = new CareerLearningPoint(
                 learningPointIdCounter++,
@@ -173,7 +161,11 @@ public class PointService {
                 priorityLevel,
                 requiredEnergyLevel,
                 careerCategory,
-                skillTrack
+                skillTrack,
+                requiredCertifications,
+                industryLevel,
+                mentorRequired,
+                salaryImpactEstimate
         );
 
         learningPoints.add(careerPoint);
@@ -182,13 +174,15 @@ public class PointService {
         return careerPoint;
     }
 
-    // adauga un learning point personal
     public LearningPoint addPersonalLearningPoint(String pointTitle, String pointDescription,
-                                                  DifficultyLevel difficultyLevel,
-                                                  PriorityLevel priorityLevel,
-                                                  EnergyLevel requiredEnergyLevel,
-                                                  String personalFocusArea) {
-        Category personalCategory = getCategoryByName("personala");
+            DifficultyLevel difficultyLevel,
+            PriorityLevel priorityLevel,
+            EnergyLevel requiredEnergyLevel,
+            String personalFocusArea,
+            WellnessCategory wellnessCategory,
+            ReflectionFrequency reflectionFrequency,
+            String successMetrics) {
+        Category personalCategory = getCategoryByName("personal");
 
         PersonalLearningPoint personalPoint = new PersonalLearningPoint(
                 learningPointIdCounter++,
@@ -198,7 +192,10 @@ public class PointService {
                 priorityLevel,
                 requiredEnergyLevel,
                 personalCategory,
-                personalFocusArea
+                personalFocusArea,
+                wellnessCategory,
+                reflectionFrequency,
+                successMetrics
         );
 
         learningPoints.add(personalPoint);
@@ -207,12 +204,10 @@ public class PointService {
         return personalPoint;
     }
 
-    // returneaza toate activitatile de invatare
     public List<LearningPoint> getAllLearningPoints() {
         return learningPoints;
     }
 
-    // returneaza activitatile dintr-o anumita categorie
     public List<LearningPoint> getLearningPointsByCategory(String categoryName) {
         List<LearningPoint> filteredPoints = new ArrayList<>();
 
@@ -225,12 +220,10 @@ public class PointService {
         return filteredPoints;
     }
 
-    // returneaza activitatile sortate automat
     public TreeSet<LearningPoint> getSortedLearningPoints() {
         return sortedLearningPoints;
     }
 
-    // seteaza energia curenta a utilizatorului
     public EnergyState setCurrentEnergyState(EnergyLevel energyLevel, String stateNotes) {
         currentEnergyState = new EnergyState(
                 energyStateIdCounter++,
@@ -242,12 +235,10 @@ public class PointService {
         return currentEnergyState;
     }
 
-    // returneaza energia curenta
     public EnergyState getCurrentEnergyState() {
         return currentEnergyState;
     }
 
-    // afiseaza activitatile compatibile cu energia curenta
     public List<LearningPoint> getCompatibleLearningPointsForCurrentEnergy() {
         List<LearningPoint> compatiblePoints = new ArrayList<>();
 
@@ -256,8 +247,8 @@ public class PointService {
         }
 
         for (LearningPoint currentPoint : learningPoints) {
-            boolean hasEnoughEnergy =
-                    currentEnergyState.getEnergyLevel().ordinal() >= currentPoint.getRequiredEnergyLevel().ordinal();
+            boolean hasEnoughEnergy
+                    = currentEnergyState.getEnergyLevel().ordinal() >= currentPoint.getRequiredEnergyLevel().ordinal();
 
             if (!currentPoint.isCompleted() && hasEnoughEnergy) {
                 compatiblePoints.add(currentPoint);
@@ -267,9 +258,8 @@ public class PointService {
         return compatiblePoints;
     }
 
-    // adauga un milestone nou
     public Milestone addMilestone(String milestoneTitle, String milestoneDescription,
-                                  int targetValue, LocalDate deadline) {
+            int targetValue, LocalDate deadline) {
         Milestone milestone = new Milestone(
                 milestoneIdCounter++,
                 milestoneTitle,
@@ -283,12 +273,10 @@ public class PointService {
         return milestone;
     }
 
-    // returneaza toate milestone-urile
     public List<Milestone> getAllMilestones() {
         return new ArrayList<>(milestoneMap.values());
     }
 
-    // returneaza doar milestone-urile active
     public List<Milestone> getActiveMilestones() {
         List<Milestone> activeMilestones = new ArrayList<>();
 
@@ -301,7 +289,6 @@ public class PointService {
         return activeMilestones;
     }
 
-    // actualizeaza progresul unui milestone si salveaza istoricul
     public boolean updateMilestoneProgress(int milestoneId, int updatedValue, String updateNotes) {
         Milestone milestone = milestoneMap.get(milestoneId);
 
@@ -325,14 +312,12 @@ public class PointService {
         return true;
     }
 
-    // returneaza istoricul progresului
     public List<ProgressRecord> getProgressHistory() {
         return progressHistory;
     }
 
-    // creeaza o sesiune de studiu pentru un learning point
     public StudySession createStudySession(int learningPointId, LocalDate sessionDate,
-                                           int plannedMinutes, String sessionNotes) {
+            int plannedMinutes, String sessionNotes) {
         LearningPoint chosenPoint = findLearningPointById(learningPointId);
 
         if (chosenPoint == null) {
@@ -352,12 +337,10 @@ public class PointService {
         return studySession;
     }
 
-    // returneaza toate sesiunile
     public List<StudySession> getAllStudySessions() {
         return studySessions;
     }
 
-    // marcheaza o sesiune ca finalizata
     public boolean markStudySessionCompleted(int sessionId) {
         for (StudySession currentSession : studySessions) {
             if (currentSession.getId() == sessionId) {
@@ -370,7 +353,6 @@ public class PointService {
         return false;
     }
 
-    // genereaza recomandarea smart next point
     public NextPoint generateNextPointRecommendation() {
         if (currentEnergyState == null) {
             return null;
@@ -384,8 +366,8 @@ public class PointService {
                 continue;
             }
 
-            boolean hasEnoughEnergy =
-                    currentEnergyState.getEnergyLevel().ordinal() >= currentPoint.getRequiredEnergyLevel().ordinal();
+            boolean hasEnoughEnergy
+                    = currentEnergyState.getEnergyLevel().ordinal() >= currentPoint.getRequiredEnergyLevel().ordinal();
 
             if (!hasEnoughEnergy) {
                 continue;
@@ -403,8 +385,8 @@ public class PointService {
             return null;
         }
 
-        String whyThisPoint =
-                "recomandarea a fost generata pe baza energiei curente, a prioritatii si a dificultatii activitatii";
+        String whyThisPoint
+                = "this has been recommended because it matches your current energy level and has a good balance of priority and difficulty";
 
         NextPoint nextPoint = new NextPoint(
                 nextPointIdCounter++,
@@ -417,17 +399,13 @@ public class PointService {
         return nextPoint;
     }
 
-    // calculeaza scorul unei recomandari
     private int calculateRecommendationScore(LearningPoint learningPoint, EnergyLevel currentEnergyLevel) {
         int score = 0;
 
-        // prioritatea conteaza mult
         score += learningPoint.getPriorityLevel().ordinal() * 10;
 
-        // dificultatea conteaza moderat
         score += learningPoint.getDifficultyLevel().ordinal() * 5;
 
-        // daca energia se potriveste perfect, dam bonus
         if (learningPoint.getRequiredEnergyLevel() == currentEnergyLevel) {
             score += 20;
         } else if (currentEnergyLevel.ordinal() > learningPoint.getRequiredEnergyLevel().ordinal()) {
@@ -437,7 +415,6 @@ public class PointService {
         return score;
     }
 
-    // cauta un learning point dupa id
     public LearningPoint findLearningPointById(int learningPointId) {
         for (LearningPoint currentPoint : learningPoints) {
             if (currentPoint.getId() == learningPointId) {
@@ -448,51 +425,156 @@ public class PointService {
         return null;
     }
 
-    // adauga cateva date demo pentru testare rapida
-    public void seedSampleData() {
-        addLearner(
-                "andreea cacenschi",
-                "andreea@example.com",
-                "software development"
-        );
+    // ===== ACADEMIC ANALYTICS =====
+    // Calculate total completed academic credits earned
+    public double calculateTotalAcademicCreditsEarned() {
+        double totalCredits = 0;
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof AcademicLearningPoint && point.isCompleted()) {
+                AcademicLearningPoint academicPoint = (AcademicLearningPoint) point;
+                // Default to 80% score if not explicitly set (can be enhanced later)
+                totalCredits += academicPoint.calculateCreditsEarned(80);
+            }
+        }
+        
+        return totalCredits;
+    }
 
-        addAcademicLearningPoint(
-                "pregatire examen java",
-                "recapitulare mostenire, colectii si clase abstracte",
-                DifficultyLevel.HARD,
-                PriorityLevel.HIGH,
-                EnergyLevel.HIGH,
-                "programare avansata pe obiecte"
-        );
+    // Get all academic points with their assessment details
+    public List<AcademicLearningPoint> getAllAcademicPoints() {
+        List<AcademicLearningPoint> academicPoints = new ArrayList<>();
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof AcademicLearningPoint) {
+                academicPoints.add((AcademicLearningPoint) point);
+            }
+        }
+        
+        return academicPoints;
+    }
 
-        addCareerLearningPoint(
-                "exersare java oop",
-                "rezolvare exercitii pentru clase, obiecte si metode",
-                DifficultyLevel.MEDIUM,
-                PriorityLevel.HIGH,
-                EnergyLevel.MEDIUM,
-                "java"
-        );
+    // get career progression summary for all professional points
+    public List<String> getCareerProgressionSummary() {
+        List<String> progressionSummary = new ArrayList<>();
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof CareerLearningPoint) {
+                CareerLearningPoint careerPoint = (CareerLearningPoint) point;
+                String summary = careerPoint.getPointTitle() + " - " + careerPoint.estimateCareerProgression();
+                progressionSummary.add(summary);
+            }
+        }
+        
+        return progressionSummary;
+    }
 
-        addPersonalLearningPoint(
-                "lectura de seara",
-                "citirea unui capitol pentru echilibru si reflectie",
-                DifficultyLevel.EASY,
-                PriorityLevel.MEDIUM,
-                EnergyLevel.LOW,
-                "lectura"
-        );
+    // get estimated total salary impact from completed career points
+    public double calculateTotalSalaryImpact() {
+        double totalImpact = 0;
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof CareerLearningPoint && point.isCompleted()) {
+                CareerLearningPoint careerPoint = (CareerLearningPoint) point;
+                totalImpact += careerPoint.getSalaryImpactEstimate();
+            }
+        }
+        
+        return totalImpact;
+    }
 
-        addMilestone(
-                "bazele java",
-                "parcurgerea notiunilor de baza pentru proiect",
-                10,
-                LocalDate.now().plusDays(14)
-        );
+    // get all career points that require mentor support
+    public List<CareerLearningPoint> getCareerPointsRequiringMentor() {
+        List<CareerLearningPoint> mentorNeeded = new ArrayList<>();
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof CareerLearningPoint) {
+                CareerLearningPoint careerPoint = (CareerLearningPoint) point;
+                if (careerPoint.isMentorRequired() && !careerPoint.isCompleted()) {
+                    mentorNeeded.add(careerPoint);
+                }
+            }
+        }
+        
+        return mentorNeeded;
+    }
 
-        setCurrentEnergyState(
-                EnergyLevel.MEDIUM,
-                "energie buna pentru activitati moderate"
-        );
+    // get all personal points with next reflection schedule
+    public List<String> getPersonalPointsReflectionSchedule() {
+        List<String> reflectionSchedule = new ArrayList<>();
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof PersonalLearningPoint) {
+                PersonalLearningPoint personalPoint = (PersonalLearningPoint) point;
+                LocalDate nextReflection = personalPoint.scheduleNextReflection();
+                String schedule = personalPoint.getPersonalFocusArea() + " - Next reflection: " + nextReflection 
+                    + " (" + personalPoint.getReflectionFrequency() + ")";
+                reflectionSchedule.add(schedule);
+            }
+        }
+        
+        return reflectionSchedule;
+    }
+
+    // get personal points by wellness category
+    public List<PersonalLearningPoint> getPersonalPointsByWellnessCategory(WellnessCategory category) {
+        List<PersonalLearningPoint> filteredPoints = new ArrayList<>();
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof PersonalLearningPoint) {
+                PersonalLearningPoint personalPoint = (PersonalLearningPoint) point;
+                if (personalPoint.getWellnessCategory() == category) {
+                    filteredPoints.add(personalPoint);
+                }
+            }
+        }
+        
+        return filteredPoints;
+    }
+
+    // get all career points with their details
+    public List<CareerLearningPoint> getAllCareerPoints() {
+        List<CareerLearningPoint> careerPoints = new ArrayList<>();
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof CareerLearningPoint) {
+                careerPoints.add((CareerLearningPoint) point);
+            }
+        }
+        
+        return careerPoints;
+    }
+
+    // get all personal points with their details
+    public List<PersonalLearningPoint> getAllPersonalPoints() {
+        List<PersonalLearningPoint> personalPoints = new ArrayList<>();
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof PersonalLearningPoint) {
+                personalPoints.add((PersonalLearningPoint) point);
+            }
+        }
+        
+        return personalPoints;
+    }
+
+    // get learning point type count
+    public String getLearningPointTypeBreakdown() {
+        int academicCount = 0;
+        int careerCount = 0;
+        int personalCount = 0;
+        
+        for (LearningPoint point : learningPoints) {
+            if (point instanceof AcademicLearningPoint) {
+                academicCount++;
+            } else if (point instanceof CareerLearningPoint) {
+                careerCount++;
+            } else if (point instanceof PersonalLearningPoint) {
+                personalCount++;
+            }
+        }
+        
+        return String.format("Academic: %d | Career: %d | Personal: %d | Total: %d",
+                academicCount, careerCount, personalCount, learningPoints.size());
     }
 }
